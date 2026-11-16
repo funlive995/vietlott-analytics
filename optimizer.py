@@ -34,12 +34,12 @@ def _marginal_probabilities(history, alpha=30.0, recent_window=100, recent_weigh
     counts = np.bincount(history.ravel(), minlength=46)[1:].astype(float)
     # Each draw contributes six selections. Under uniformity, p(number)=6/45.
     base = np.full(45, PICK / N_NUMBERS)
-    p_long = (counts + alpha * base) / (PICK * n + alpha)
+    p_long = (counts + alpha * base) / (PICK * n + alpha * PICK)
     if recent_weight <= 0 or n == 0:
         return p_long
     recent = history[-min(recent_window, n):]
     rc = np.bincount(recent.ravel(), minlength=46)[1:].astype(float)
-    p_recent = (rc + alpha * base) / (PICK * len(recent) + alpha)
+    p_recent = (rc + alpha * base) / (PICK * len(recent) + alpha * PICK)
     p = (1 - recent_weight) * p_long + recent_weight * p_recent
     return p / p.sum() * PICK
 
