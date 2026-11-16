@@ -28,3 +28,14 @@ Nguồn: https://github.com/vietvudanh/vietlott-data (MIT). Dữ liệu cache 1 
 - Lịch sử kỳ quay và xuất CSV
 
 Lưu ý: thống kê quá khứ không dự đoán hay bảo đảm kết quả tương lai.
+
+
+## Optimizer & kiểm định ngoài mẫu
+Dashboard có thêm trang **Mega Optimizer** trong thanh điều hướng:
+- Walk-forward backtest với warm-up mặc định 100 kỳ, kiểm tra 1.292 kỳ tiếp theo trên bộ dữ liệu 1.392 kỳ.
+- Baseline uniform so sánh với frequency shrinkage và mô hình kết hợp tần suất gần đây.
+- Log-score theo từng kỳ, paired delta và tải CSV kết quả.
+- Tạo danh mục vé theo ngân sách; mặc định không giả định có bias.
+- Tính xác suất Jackpot lý thuyết từ số vé khác nhau.
+
+Engine nằm trong `optimizer.py`. Các mô hình thống kê chỉ là thử nghiệm; nếu không vượt baseline ngoài mẫu thì không được diễn giải thành lợi thế dự báo.
