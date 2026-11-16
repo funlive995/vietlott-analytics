@@ -5,7 +5,8 @@ import streamlit as st
 
 from optimizer import (
     walk_forward_backtest, generate_portfolio,
-    theoretical_jackpot_probability, portfolio_coverage
+    theoretical_jackpot_probability, portfolio_coverage,
+    make_disjoint_portfolio, monte_carlo_portfolio_comparison, bias_diagnostics
 )
 
 DATA_URL = "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl"
@@ -41,7 +42,7 @@ st.info(
     "Backtest theo thứ tự thời gian: mỗi kỳ chỉ được dự báo bằng dữ liệu trước kỳ đó."
 )
 
-tab1, tab2, tab3 = st.tabs(["🧪 Kiểm định ngoài mẫu", "🎟️ Tạo danh mục 50.000đ", "📐 Xác suất Jackpot"])
+tab1, tab2, tab3 = st.tabs(["🧪 Kiểm định ngoài mẫu", "🎟️ Tạo danh mục 50.000đ", "📐 Xác suất Jackpot", "🧬 Bias & Monte Carlo"])
 
 with tab1:
     st.subheader("Walk-forward backtest")
@@ -112,3 +113,46 @@ with tab3:
 
 st.divider()
 st.caption("Research tool only. Backtest là kiểm định lịch sử ngoài mẫu theo thời gian, không phải cam kết lợi nhuận hay dự đoán kết quả.")
+
+
+with tab4:
+    st.subheader("1) Kiểm tra bias và độ ổn định")
+    if st.button("Chạy bias diagnostics"):
+        with st.spinner("Đang kiểm định 45 số, 990 cặp và phụ thuộc giữa hai kỳ liên tiếp..."):
+            st.session_state["bias_result"] = bias_diagnostics(df["numbers"].tolist())
+    if "bias_result" in st.session_state:
+        b = st.session_state["bias_result"]
+        a, c, d, e = st.columns(4)
+        a.metric("Số có ý nghĩa BH", b["number_significant_BH_05"])
+        c.metric("Số có ý nghĩa BY", b["number_significant_BY_05"])
+        d.metric("Cặp có ý nghĩa BH", b["pair_significant_BH_05"])
+        e.metric("Cặp có ý nghĩa BY", b["pair_significant_BY_05"])
+        a, c, d = st.columns(3)
+        a.metric("Tương quan tần suất 2 nửa", f'{b["number_half_correlation"]:.3f}')
+        c.metric("Tương quan cặp số 2 nửa", f'{b["pair_half_correlation"]:.3f}')
+        d.metric("p-value overlap kỳ liên tiếp", f'{b["adjacent_overlap_p_value"]:.4f}')
+        st.write("**Top 15 số theo tần suất**")
+        st.dataframe(b["number_table"].head(15), hide_index=True, use_container_width=True)
+        st.write("**Top 15 cặp theo tần suất**")
+        st.dataframe(b["pair_table"].head(15), hide_index=True, use_container_width=True)
+        st.caption("BH kiểm soát FDR; BY bảo thủ hơn khi phụ thuộc giữa các kiểm định. Không diễn giải p-value thô đơn lẻ là bias.")
+    st.divider()
+    st.subheader("2) Combinatorial portfolio")
+    st.write("5 vé không trùng số đạt tối đa 30 số riêng, 75 cặp riêng và 100 bộ ba riêng. Điều này tăng độ phủ cấu trúc, không làm tăng xác suất Jackpot.")
+    if st.button("Tạo 5 vé tối đa độ phủ"):
+        st.session_state["disjoint_portfolio"] = make_disjoint_portfolio(seed=645, n_lines=5)
+    if "disjoint_portfolio" in st.session_state:
+        dp = st.session_state["disjoint_portfolio"]
+        st.dataframe(dp[["Vé", "Số"]], hide_index=True, use_container_width=True)
+        st.write(portfolio_coverage(dp))
+    st.divider()
+    st.subheader("3) Monte Carlo: random vs disjoint")
+    trials = st.select_slider("Số lần mô phỏng", options=[5000, 10000, 25000, 50000], value=10000)
+    if st.button("Chạy Monte Carlo"):
+        with st.spinner(f"Đang mô phỏng {trials:,} danh mục và kỳ quay..."):
+            st.session_state["mc_result"] = monte_carlo_portfolio_comparison(
+                trials=int(trials), n_lines=5, seed=645
+            )
+    if "mc_result" in st.session_state:
+        st.dataframe(st.session_state["mc_result"], hide_index=True, use_container_width=True)
+        st.caption("Mỗi lần mô phỏng tạo một danh mục 5 vé và một kỳ quay ngẫu nhiên. Sai số chuẩn Monte Carlo được báo trong bảng. Xác suất Jackpot quá nhỏ để ước lượng bằng số lần mô phỏng này; dùng xác suất lý thuyết ở tab bên cạnh.")
