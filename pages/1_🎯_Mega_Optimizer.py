@@ -42,7 +42,7 @@ st.info(
     "Backtest theo thứ tự thời gian: mỗi kỳ chỉ được dự báo bằng dữ liệu trước kỳ đó."
 )
 
-tab1, tab2, tab3 = st.tabs(["🧪 Kiểm định ngoài mẫu", "🎟️ Tạo danh mục 50.000đ", "📐 Xác suất Jackpot", "🧬 Bias & Monte Carlo"])
+tab1, tab2, tab3, tab4 = st.tabs(["🧪 Kiểm định ngoài mẫu", "🎟️ Tạo danh mục 50.000đ", "📐 Xác suất Jackpot", "🧬 Bias & Monte Carlo"])
 
 with tab1:
     st.subheader("Walk-forward backtest")
