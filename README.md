@@ -34,7 +34,7 @@ Lưu ý: thống kê quá khứ không dự đoán hay bảo đảm kết quả 
 Dashboard có thêm trang **Mega Optimizer** trong thanh điều hướng:
 - Walk-forward backtest với warm-up mặc định 100 kỳ, kiểm tra 1.292 kỳ tiếp theo trên bộ dữ liệu 1.392 kỳ.
 - Baseline uniform so sánh với frequency shrinkage và mô hình kết hợp tần suất gần đây.
-- Log-score theo từng kỳ, paired delta và tải CSV kết quả.
+- Log-score xác suất của **tập hợp 6 số không có thứ tự**, tính chính xác bằng dynamic programming để cộng đủ 6! thứ tự rút theo Plackett–Luce; paired delta và tải CSV kết quả.
 - Tạo danh mục vé theo ngân sách; mặc định không giả định có bias.
 - Tính xác suất Jackpot lý thuyết từ số vé khác nhau.
 
