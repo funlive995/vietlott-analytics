@@ -45,17 +45,39 @@ def _marginal_probabilities(history, alpha=30.0, recent_window=100, recent_weigh
 
 
 def _draw_log_score(draw, p):
-    """Approximate log probability of a six-number set under weighted sampling
-    without replacement (Plackett-Luce sequential approximation).
+    """Exact log probability of an unordered six-number set under a
+    Plackett-Luce sequential-without-replacement model.
+
+    Dynamic programming sums the probabilities of all 6! possible draw
+    orders. A DP state is the subset of target numbers already selected.
     """
-    remaining = np.asarray(p, dtype=float).copy()
-    score = 0.0
-    for number in draw:
-        idx = int(number) - 1
-        denom = remaining.sum()
-        score += math.log(max(remaining[idx] / denom, 1e-15))
-        remaining[idx] = 0.0
-    return score
+    weights = np.asarray([p[int(number) - 1] for number in draw], dtype=float)
+    total = float(np.sum(p))
+    if np.any(weights <= 0) or total <= 0:
+        return math.log(1e-300)
+
+    # dp[mask] sums the probability of every ordering that selected mask.
+    dp = np.zeros(1 << len(weights), dtype=float)
+    dp[0] = 1.0
+    subset_weight = np.zeros(1 << len(weights), dtype=float)
+    for mask in range(1, len(subset_weight)):
+        bit = mask & -mask
+        idx = bit.bit_length() - 1
+        subset_weight[mask] = subset_weight[mask ^ bit] + weights[idx]
+
+    full = (1 << len(weights)) - 1
+    for mask in range(full):
+        denom = total - subset_weight[mask]
+        if denom <= 0:
+            continue
+        remaining = full ^ mask
+        while remaining:
+            bit = remaining & -remaining
+            idx = bit.bit_length() - 1
+            dp[mask | bit] += dp[mask] * weights[idx] / denom
+            remaining ^= bit
+
+    return math.log(max(float(dp[full]), 1e-300))
 
 
 def walk_forward_backtest(draws, warmup=100, recent_window=100):
@@ -84,10 +106,6 @@ def walk_forward_backtest(draws, warmup=100, recent_window=100):
             "recency_blend": _draw_log_score(actual, p_recent),
         }
         row = {"draw_index": t, **scores}
-        for name, p in (("shrunk_frequency", p_freq), ("recency_blend", p_recent)):
-            row[f"{name}_brier"] = float(np.mean(
-                (np.bincount(actual, minlength=46)[1:] - p) ** 2
-            ))
         records.append(row)
     result = pd.DataFrame(records)
     summary = []
