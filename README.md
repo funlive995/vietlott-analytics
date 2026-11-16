@@ -39,3 +39,12 @@ Dashboard có thêm trang **Mega Optimizer** trong thanh điều hướng:
 - Tính xác suất Jackpot lý thuyết từ số vé khác nhau.
 
 Engine nằm trong `optimizer.py`. Các mô hình thống kê chỉ là thử nghiệm; nếu không vượt baseline ngoài mẫu thì không được diễn giải thành lợi thế dự báo.
+
+
+## Nghiên cứu nâng cao: 3 hướng
+Trang **Bias & Monte Carlo** bổ sung:
+1. **Combinatorial portfolio:** tạo 5 vé không trùng số, đạt 30 số riêng, 75 cặp riêng và 100 bộ ba riêng. Đây là tối đa về độ phủ số/cặp/bộ ba trong cấu hình 5 vé.
+2. **Bias diagnostics:** exact binomial tests cho 45 số và 990 cặp, điều chỉnh đa kiểm định bằng Benjamini–Hochberg (BH) và Benjamini–Yekutieli (BY); so sánh ổn định giữa hai nửa lịch sử và kiểm tra giao nhau giữa hai kỳ liên tiếp.
+3. **Monte Carlo:** so sánh danh mục random và disjoint dưới giả thuyết quay công bằng; báo độ phủ và xác suất có ít nhất một vé đạt >=2, >=3, >=4, >=5 hoặc 6 số.
+
+Monte Carlo không đủ lớn để đo xác suất Jackpot (cỡ 1/1,629,012 cho 5 vé). Xác suất Jackpot phải dùng công thức chính xác, không ước lượng từ số lần mô phỏng hiếm.
